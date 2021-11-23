@@ -1,0 +1,146 @@
+# This is a basic workflow to help you get started with Actions
+ //setup edge sprites
+createEdgeSprites();
+
+//create a user paddle sprite
+var userPaddle = createSprite(390,200,10,70);
+
+//create a computer paddle sprite
+var computerPaddle = createSprite(10,200,10,70);
+
+//create the pong ball
+var ball = createSprite(200,200,12,12);
+
+var computerScore = 0;
+var playerScore = 0;
+var gameState = "serve";
+
+function draw() {
+  //fill the computer screen with white color
+  background("white");
+  
+  //display Scores
+  text(computerScore,170,20);
+  text(playerScore, 230,20);
+  
+  //draw dotted lines
+  for (var i = 0; i < 400; i+=20) {
+     line(200,i,200,i+10);
+  }
+  
+  if (gameState === "serve") {
+    text("Press Space to Serve",150,180);
+  } 
+  
+  if (gameState === "over") {
+    text("Game Over!",170,160);
+    text("Press 'R' to Restart",150,180);
+  }
+  
+  if (keyDown("r")) {
+    gameState = "serve";
+    computerScore = 0;
+    playerScore = 0;
+  }
+  
+  
+  //give velocity to the ball when the user presses play
+  //assign random velocities later for fun
+  if (keyDown("space") && gameState == "serve") {
+    ball.velocityX = 5;
+    ball.velocityY = 5;
+    gameState = "play";
+  }
+  
+  //make the userPaddle move with the mouse
+  userPaddle.y = World.mouseY;
+  
+  
+  
+  //make the ball bounce off the user paddle
+  if(ball.isTouching(userPaddle)){
+    playSound("hit.mp3");
+    ball.x = ball.x - 5;
+    ball.velocityX = -ball.velocityX;
+  }
+  
+  //make the ball bounce off the computer paddle
+  if(ball.isTouching(computerPaddle)){
+    playSound("hit.mp3");
+    ball.x = ball.x + 5;
+    ball.velocityX = -ball.velocityX;
+  }
+  
+  //place the ball back in the centre if it crosses the screen
+  if(ball.x > 400 || ball.x < 0){
+    playSound("score.mp3");
+    
+    if (ball.x < 0) {
+      playerScore++;
+    }
+    else {
+      computerScore++;
+    }
+      
+    ball.x = 200;
+    ball.y = 200;
+    ball.velocityX = 0;
+    ball.velocityY = 0;
+    gameState = "serve";
+    
+    if (computerScore=== 5 || playerScore === 5){
+      gameState = "over";
+    }
+  }
+  
+  //make the ball bounce off the top and bottom walls
+  if (ball.isTouching(topEdge) || ball.isTouching(bottomEdge)) {
+    ball.bounceOff(topEdge);
+    ball.bounceOff(bottomEdge);
+    playSound("wall_hit.mp3"); 
+  }
+  
+  //add AI to the computer paddle so that it always hits the ball
+  computerPaddle.y = ball.y;
+  drawSprites();
+}
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+echo "# ShonenWP" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/Mendokusugi/ShonenWP.git
+git push -u origin main    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
